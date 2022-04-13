@@ -28,7 +28,7 @@ async function run() {
     try {
       await client.connect();
       console.log("Connected");
-      const database = client.db('Cars-Server');
+      const database = client.db('RideAndDrive');
       const servicesCollection = database.collection('Cars');
       const purchaseCollection = database.collection('purchases');
       const UsersCollection = database.collection('users');
@@ -48,6 +48,16 @@ async function run() {
         res.json(result)
       })
 
+
+      app.get("/order/:email",async(req,res)=>{
+        const userEmail=req.params.email;
+        console.log(userEmail);
+        const query = {email: userEmail};
+        
+        const cursor= purchaseCollection.find(query);
+        const result=await cursor.toArray()
+        res.json(result);
+     })
       // get all Orders //
 
       app.get("/orders",async (req,res)=>{
