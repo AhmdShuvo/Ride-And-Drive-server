@@ -38,6 +38,197 @@ async function run() {
           
 
      
+       // Add New Car to Data base //
+       app.post("/cars",async(req,res)=>{
+
+        const product=req.body;
+
+        const result=await servicesCollection.insertOne(product);
+  
+        res.send(result)
+    })
+
+      //  Store Purchase Data ///
+      app.post('/orders',async(req,res)=>{
+           const order=req.body;
+
+           const result=await purchaseCollection.insertOne(order);
+res.send(result)
+      });
+
+
+
+        // POst Ratings By users //
+        app.post('/reviews',async(req,res)=>{
+
+          const data=req.body;
+          
+
+          const result =await ratingsCollection.insertOne(data);
+
+          res.send(result)
+        })
+                    // Store Users ///
+
+
+       app.post('/users',async (req,res)=>{
+      
+        const user=req.body;
+
+        const result=await UsersCollection.insertOne(user);
+
+        res.send(result)
+       
+       });
+
+      //  Get Admins ///
+
+      app.get('/user/admin/:email', async(req,res)=>{
+
+         const email= req.params.email;
+          let isAdmin=false
+         const query={email:email}
+         const user=await UsersCollection.findOne(query);
+
+         if(user?.role==="admin"){
+           isAdmin=true
+
+         }
+
+         res.json({admin : isAdmin})
+      })
+
+        //  delete order as Admin ///
+
+        app.delete("/orders/:id",async(req,res)=>{
+
+          const id=req.params.id;
+
+          const query={_id: Objectid(id)}
+       
+          const result=await purchaseCollection.deleteOne(query);
+
+          res.send(result)
+      });
+
+      //  change pending to active //
+      app.put("/orders/:id",async(req,res)=>{
+        const id=req.params.id;
+      
+      
+      const updateUser=req.body;
+    
+       const filter={_id: Objectid(id)}
+       const options = { upsert: false };
+       const updateDoc = {
+        $set: {
+          status: `Shipped`
+        },
+      };
+
+      const result= await purchaseCollection.updateMany(filter,updateDoc,options)
+     
+
+
+      
+       res.json(result)
+    })
+
+      //  update Admin ROle ///
+
+      app.put('/users',async(req,res)=>{
+
+        const user=req.body;
+        const filter={email:user.email}
+       
+
+        
+
+        const updateDoc = {
+          $set: {
+            role: "admin"
+          },
+        };
+
+        const result=await UsersCollection.updateOne(filter,updateDoc);
+
+      res.json(result)
+       
+      })
+
+      //  Update For Google USers///
+      app.post('/users',async(req,res)=>{
+
+        const user=req.body;
+
+        const filter = { email:user.email};
+       
+        const options = { upsert: true };
+        const updateDoc = {$set:user};
+      const result= await  UsersCollection.updateOne(filter,updateDoc,options);
+
+       res.json(result)
+      })
+
+
+
+
+            //  Delete Products ///
+
+            app.delete('/cars/:carId',async(req,res)=>{
+            
+
+              const id=req.params.carId;
+             
+              const query={_id: Objectid(id)}
+              const result = await servicesCollection.deleteOne(query);
+              res.send(result)
+
+            })
+         //  Delete User Purchase //
+
+         app.delete("/order/:email",async(req,res)=>{
+          const id=req.params.email
+
+          const query={_id: Objectid(id)}
+          const result = await purchaseCollection.deleteOne(query);
+          res.send(result)
+       })
+                
+                  // get Ratings ///
+
+                  app.get('/reviews',async(req,res)=>{
+
+                    const cursor=ratingsCollection.find({});
+
+                    const result=await cursor.toArray()
+                    res.json(result);
+                    
+                  })
+
+            //  Get User Orders //
+
+            app.get("/order/:email",async(req,res)=>{
+               const userEmail=req.params.email;
+
+               const query = {email: userEmail};
+               const cursor= purchaseCollection.find(query);
+               const result=await cursor.toArray()
+               res.json(result);
+            })
+
+
+         
+      // Get All USers //
+
+      app.get('/users',async(req,res)=>{
+
+        const cursor =UsersCollection.find({});
+
+          const result=await cursor.toArray()
+
+          res.json(result)
+      })
       // GEt All Cars ///
                 
          app.get('/cars',async(req,res)=>{
@@ -48,16 +239,6 @@ async function run() {
         res.json(result)
       })
 
-
-      app.get("/order/:email",async(req,res)=>{
-        const userEmail=req.params.email;
-        console.log(userEmail);
-        const query = {email: userEmail};
-        
-        const cursor= purchaseCollection.find(query);
-        const result=await cursor.toArray()
-        res.json(result);
-     })
       // get all Orders //
 
       app.get("/orders",async (req,res)=>{
